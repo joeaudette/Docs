@@ -58,7 +58,7 @@ namespace ContactManager
             // requires using Microsoft.AspNetCore.Mvc;
             services.Configure<MvcOptions>(options =>
             {
-                options.Filters.Add(new RequireHttpsAttribute());
+                //options.Filters.Add(new RequireHttpsAttribute());
             });
             #endregion
 
@@ -75,17 +75,7 @@ namespace ContactManager
             });
             #endregion
 
-            // Review: Where is this explained in the article?
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy(
-                Constants.ContactUserPolicy,
-                authBuilder =>
-                {
-                    authBuilder.RequireAuthenticatedUser();
-                });              
-            });
-
+            
             #region AuthorizationHandlers
             // Authorization handlers.
             services.AddScoped<IAuthorizationHandler, 

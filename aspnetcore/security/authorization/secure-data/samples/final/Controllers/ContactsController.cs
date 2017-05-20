@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 namespace ContactManager.Controllers
 {
     #region snippet_ContactsControllerCtor
-    [Authorize(Policy = "ContactUserPolicy")]
     public class ContactsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -35,20 +34,14 @@ namespace ContactManager.Controllers
             var contacts = from c in _context.Contact
                            select c;
 
-            // REVIEW: Is there a cleaner way to compute isAuthorized.
-            var contactDB = await _context.Contact.FirstOrDefaultAsync();
+            var isAuthorized = User.IsInRole(Constants.ContactManagersRole) || User.IsInRole(Constants.ContactAdministratorsRole);
+            
+            var currentUserId = _userManager.GetUserId(User);
 
-            var isAuthorized = await _authorizationService.AuthorizeAsync(
-                                                       User, contactDB,
-                                                       ContactOperations.Approve);
-
-            // TODO-Rick: It would be nice if users could see their own contacts before
-            // they are approved. Only do this if it'd doesn't make the code complicated.
-
-            // Only approved contacts are shown UNLESS you're authorized to see them all.
+            // Only approved contacts are shown UNLESS you're authorized to see them all or you are the owner.
             if (!isAuthorized)
             {
-                contacts = contacts.Where(c => c.Status == ContactStatus.Approved);
+                contacts = contacts.Where(c => c.Status == ContactStatus.Approved || c.OwnerID == currentUserId);
             }
 
             return View(await contacts.ToListAsync());
